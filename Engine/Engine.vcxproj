@@ -38,7 +38,14 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(SolutionDir)/deps/SDL2-2.0.5/include;$(SolutionDir)/deps/glm/include;$(SolutionDir)/deps/glew-2.0.0/include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)/deps/glew-2.0.0/lib;$(SolutionDir)/deps/SDL2-2.0.5/lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(SolutionDir)/deps/SDL2-2.0.5/include;$(SolutionDir)/deps/glm/include;$(SolutionDir)/deps/glew-2.0.0/include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)/deps/glew-2.0.0/lib;$(SolutionDir)/deps/SDL2-2.0.5/lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -47,6 +54,8 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>opengl32.lib;glew32.lib;sdl2.lib;sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -61,9 +70,26 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>opengl32.lib;glew32.lib;sdl2.lib;sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Error.cpp" />
+    <ClCompile Include="GameManager.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Voxel.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Error.h" />
+    <ClInclude Include="GameManager.h" />
+    <ClInclude Include="Voxel.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="fragment.shader" />
+    <None Include="vertex.shader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
