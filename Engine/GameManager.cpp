@@ -11,7 +11,18 @@
 #include "Voxel.h"
 
 
-GameManager::GameManager()
+GameManager::GameManager() :
+	_windowDimensions(1280, 720),
+	_windowCenter(_windowDimensions.x / 2, _windowDimensions.y / 2)
+{
+	_Init();
+}
+
+GameManager::~GameManager()
+{
+}
+
+void GameManager::_Init()
 {
 	//Initialize SDL
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -19,8 +30,9 @@ GameManager::GameManager()
 		Error::PrintError(SDL_GetError());
 	}
 
-	_window = SDL_CreateWindow("Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_OPENGL);
+	_window = SDL_CreateWindow("Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, _windowDimensions.x, _windowDimensions.y, SDL_WINDOW_OPENGL);
 	SDL_GL_CreateContext(_window);
+
 
 	//Initialize OpenGL
 	if (glewInit() != GLEW_OK)
@@ -31,64 +43,39 @@ GameManager::GameManager()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	_windowCenter = glm::vec2(1280 / 2, 720 / 2);
 
+	//Additional Initialization
+	SDL_WarpMouseInWindow(_window, GameManager::_windowCenter.x, GameManager::_windowCenter.y);
+	_CompileShaders();
+	
+	
+
+	//Start Main Loop!
 	MainLoop();
-}
-
-
-
-GameManager::~GameManager()
-{
-}
-
-void GameManager::_AddShader(GLuint shaderProgram, const char* pShaderText, const char* fileName, GLenum ShaderType, GLuint &shaderID)
-{
-	shaderID = glCreateShader(ShaderType);
-
-	const GLint length = strlen(pShaderText);
-	GLint success;
-	glShaderSource(shaderID, 1, &pShaderText, &length);
-	glCompileShader(shaderID);
-	glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		GLchar InfoLog[1024];
-		glGetShaderInfoLog(shaderID, 1024, NULL, InfoLog);
-		printf("Error compiling shader file name %s:\n%s\n", fileName, InfoLog);
-		std::cin.get();
-		exit(1);
-	}
-	glAttachShader(shaderProgram, shaderID);
-}
-
-int GameManager::_ReadFile(const char* filename, std::string* shaderSource)
-{
-
-	std::ifstream fileStream(filename, std::ios::in);
-
-	if (!fileStream.is_open())
-	{
-		std::cerr << "Could not read file " << filename << ". File does not exist." << std::endl;
-		return -1;
-	}
-
-	std::string line = "";
-	while (!fileStream.eof())
-	{
-		std::getline(fileStream, line);
-		(*shaderSource).append(line + "\n");
-	}
-
-	fileStream.close();
-	return 0;
-
 }
 
 void GameManager::_CompileShaders()
 {
-	const char* pVSFileName = "vertex.shader";
-	const char* pFSFileName = "fragment.shader";
+	_shaderProgram = glCreateProgram();
+
+	_vertexShader = new Shader();
+	_vertexShader->Compile(_shaderProgram, "vertex.shader", ShaderType::VERTEX_SHADER);
+
+	_fragmentShader = new Shader();
+	_fragmentShader->Compile(_shaderProgram, "fragment.shader", ShaderType::FRAGMENT_SHADER);
+
+	glLinkProgram(_shaderProgram);
+
+	glDetachShader(_shaderProgram, _vertexShader->GetShaderID());
+	glDetachShader(_shaderProgram, _fragmentShader->GetShaderID());
+
+	glUseProgram(_shaderProgram);
+	delete _vertexShader;
+	delete _fragmentShader;
+
+	glDeleteProgram(_shaderProgram);
+
+	/*const char* pFSFileName = "fragment.shader";
 
 	_shaderProgram = glCreateProgram();
 	std::string vs, fs;
@@ -113,13 +100,7 @@ void GameManager::_CompileShaders()
 	glDeleteShader(_vertexShaderID);
 	glDeleteShader(_fragmentShaderID);
 
-	glUseProgram(_shaderProgram);
-}
-
-void GameManager::_Start()
-{
-	SDL_WarpMouseInWindow(_window, GameManager::_windowCenter.x, GameManager::_windowCenter.y);
-	_CompileShaders();
+	glUseProgram(_shaderProgram);*/
 }
 
 void GameManager::_PollEvents()
@@ -246,8 +227,6 @@ void GameManager::_Draw()
 
 void GameManager::MainLoop()
 {
-	_Start();
-
 	while (!_quit)
 	{
 		_PollEvents();
